@@ -1,4 +1,4 @@
-#This is my model related to increasing number of VCT centers for HIV
+#This is the model
 closed.sir.model <- function(t,x,params) {
   with(as.list(c(x,params)), {
     
@@ -10,33 +10,31 @@ closed.sir.model <- function(t,x,params) {
     IVCT <- x[6]
     IO   <- x[7]
     ART  <- x[8]
-    
-    beta1 <- params['beta1']            #take the model parameters
+
+    #parameters
+    beta1 <- params['beta1']           
     beta2 <- params['beta2']
     sigma1 <- params['sigma1']
     sigma2 <- params['sigma2']      
     delta1 <- params['delta1']
     delta2 <- params['delta2'] 
-    epsilon1 <- params['epsilon1']  #reduction in transmission for IVCT and IO - that is why we used (!-epsilon1)
-    epsilon2 <- params['epsilon2']  #reduction in transmission for ART - that is why we used (!-epsilon2)
-    omega <- params['omega']        # assumption of 1/w 
+    epsilon1 <- params['epsilon1']  
+    epsilon2 <- params['epsilon2']  
+    omega <- params['omega']        
     psi <- params['psi']
     alpha <- params['alpha']
 
     N  <- SH + SL + SVCT + SO + U + IVCT + IO + ART 
     N <- 1
     
-    #these are the model equations
-    
+    #model equations
     dSHdt  <-  (1/omega)*SVCT - sigma1*SH - beta1*SH*(U + (1-epsilon1)*(1-psi)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART)       
     dSLdt  <-  (1/omega)*SO - sigma2*SL - beta2*SL*(U + (1-epsilon1)*(1-psi)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART)
     dSVCTdt <-  sigma1*SH - (1/omega)*SVCT - (1-psi)*beta1*SVCT*(U + (1-epsilon1)*(1-psi)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART)
     dSOdt <-    sigma2*SL - (1/omega)*SO - beta2*SO*( U + (1-epsilon1)*(1-psi)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART)
     dUdt  <-  beta1*SH*(U + (1-epsilon1)*(1-psi)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART) +  beta2*SL*(U + (1-epsilon1)*(1-psi)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART) + (1-psi)*beta1*SVCT*(U + (1-epsilon1)*(1-psi)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART) + beta2*SO*( U + (1-epsilon1)*(1-psi)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART)-(delta1+delta2)*U 
  
-    
-    #dUdt <- (beta1*SH+ beta2*SL + (1-psi)*beta1*SVCT + beta2*SO ) * (U + (1-epsilon1)*IVCT + (1-epsilon1)*IO + (1-epsilon2)*ART) - (delta1+delta2)*U 
-    
+       
     dIVCTdt  <-  delta1*U - alpha*IVCT
     dIOdt  <-   delta2*U - alpha*IO
     dARTdt  <-  alpha*(IVCT + IO)
