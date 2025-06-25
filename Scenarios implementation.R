@@ -1,5 +1,5 @@
 # Here dynamic number of scenarios created and plotted.
-# IMPORTANT :lines between 113 and 116 should be manually determined. 
+# IMPORTANT : lines between 110-113 should be manually determined. 
 library(deSolve)
 library(MASS)
 library(mvtnorm)
@@ -17,8 +17,7 @@ run_model <- function(scenario_number, scenario_change_in_VCT, scenario_change_i
   beta_1 = 0.5247                    # peak of the posterior N=500
   beta_2 = 0.2339                    # peak of the posterior N=500
   
-  # Base case Part 1
-  
+  # Part 1
   params1 <- c( beta1 = beta_1, beta2 = beta_2, sigma1 = 0.00206, sigma2 = 0.13241, delta1 = 0.00434, delta2 = 0.19086, epsilon1 = 0.53
                , epsilon2 = 0.96,  omega = 2, psi = 0.219,  alpha = 0.747)
   times1 <- seq(from = beginning, to = intermediate, by=1)
@@ -33,7 +32,6 @@ run_model <- function(scenario_number, scenario_change_in_VCT, scenario_change_i
   )  
   
   colnames(D1)[10] <- "incidence"
-  
   prevalence <- matrix(0, nrow=nrow(D1))
   for (i in 1:nrow(D1)){
     prevalence[i] = sum(D1[i,6:9])
@@ -58,9 +56,7 @@ run_model <- function(scenario_number, scenario_change_in_VCT, scenario_change_i
   D1 <- cbind(D1, applied_test_rates_others)
   colnames(D1)[14] <- "applied_tests_others"
   
-  
-  # Change in the testing & diagnosis - Part 2
-  
+  # Part 2
   change_in_VCT = scenario_change_in_VCT      
   change_in_others = scenario_change_in_others   
   
@@ -90,7 +86,7 @@ run_model <- function(scenario_number, scenario_change_in_VCT, scenario_change_i
 
   
   diagnosed_cases <- c() 
-  diagnosed_cases <- (params2["delta1"] + params2["delta2"]) * D2[,6] * total_numberof_people   # Do not need to consider the change in the parameter because it is in the formula
+  diagnosed_cases <- (params2["delta1"] + params2["delta2"]) * D2[,6] * total_numberof_people   
   D2 <- cbind(D2, diagnosed_cases)
   colnames(D2)[12] <- "diagnosed_cases"
   
@@ -124,11 +120,6 @@ color <- col[1:scenario_count]
 name_legend = c("Base")
 par(mar = c(5,4,4,5)+1 , mai= c(0.6, 0.6, 0.5, 0.3))
 nf <- layout( matrix(rbind(c(1, 2, 3),  c(4, 5, 6), c(7, 8, 9), c(10, 11, 12)), nrow = 4, ncol=3) )
-#layout.show(nf)
-
-#for (i in 1:(scenario_count-1)) {
-#  name_legend <- c(name_legend, paste0("Scenario ", main_scenario, ".", i))
-#}
 
 if (main_scenario == 2) {
   name_legend = c("No change", "2-fold increase (VCT)", "4-fold increase (VCT)", "2.6-fold increase (VCT)", "3.8-fold increase (VCT)")
@@ -150,11 +141,11 @@ for (i in 1:scenario_count) {
   all_results <- rbind(all_results, scenario_results[[i]])
 }
 
-# This list includes only the ones that you want to graph
+# For graph
 result_name_list <- list("time", "SH", "SL", "SVCT", "SO", "U", "IVCT", "IO", "ART", "incidence", "prevalence", "diagnosed_cases")
 fold_list <- list(1,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1)
 names(fold_list) <- result_name_list 
-# data without fold_list to calculate prevented per increased test
+
 data <- data.frame(time = c(scenario_results[[1]][, 1]), SH = c(scenario_results[[1]][, 2]), 
                    SL = c(scenario_results[[1]][, 3]), SVCT = c(scenario_results[[1]][, 4]), 
                    SO = c(scenario_results[[1]][, 5]), U = c(scenario_results[[1]][, 6]), 
@@ -163,7 +154,7 @@ data <- data.frame(time = c(scenario_results[[1]][, 1]), SH = c(scenario_results
                    prevalence = c(scenario_results[[1]][, 11]), diagnosed_cases = c(scenario_results[[1]][, 12]),
                    applied_tests_VCT = c(scenario_results[[1]][, 13]), applied_tests_others = c(scenario_results[[1]][, 14])
                    )
-#data_for_plot is with fold_list to use only for  plots
+
 data_for_base_plot <- data.frame(time = c(scenario_results[[1]][, 1])*fold_list[[1]], SH = c(scenario_results[[1]][, 2])*fold_list[[2]], 
                    SL = c(scenario_results[[1]][, 3])*fold_list[[3]], SVCT = c(scenario_results[[1]][, 4])*fold_list[[4]], 
                    SO = c(scenario_results[[1]][, 5])*fold_list[[5]], U = c(scenario_results[[1]][, 6])*fold_list[[6]], 
@@ -197,13 +188,10 @@ for (i in 1:scenario_count) {
     }  
 }
 
-# Plots the results of the base case. It will take the values for first and second part. 
-# When you want to see all the results in one page run the following:
-#
 pdf(file = paste0("My_Plot_", main_scenario, ".pdf" ),  width = 4, height = 4) # Exporting the plot directly to a pdf but do not forget dev.off !
 par(mfrow = c(1,1))
 
-for (s in 2:length(result_name_list)) {     # s starts from 2 because there is time in the first column and SH starts from the second column
+for (s in 2:length(result_name_list)) {   
   # plot for base is created (with fold_list) 
   if (s == 12) {   # The y axis label for diagnosed cases is different
     plot(c((1+2017):(ending+1+2017)), data_for_base_plot[[result_name_list[[s]]]], 
@@ -229,23 +217,14 @@ for (s in 2:length(result_name_list)) {     # s starts from 2 because there is t
               type = "l", main = "Results", xlab = "Time", ylab = "Rates",  
               xaxt='n',col= col[i]  )
         axis(1, at= c((1+2017):(ending+1+2017)), labels=c((1+2017):(ending+1+2017)), las=2)
-        #legend("topright", legend= name_legend, cex= 0.6 , lty = 1, col= color, bty = "n", inset = c(-0.30, 0.4), xpd = TRUE)
         }
 }
 
 plot.new()
 legend("center", legend= name_legend, cex= 1 , lty = 1, col= color, bty = "n", inset = c(0.7, 0.2), xpd = TRUE)
 
-dev.off()  # Exporting the plot directly to a pdf but do not forget dev.off !
-
+dev.off()  # Exporting the plot directly to a pdf
 
 for (i in 1:scenario_count) { 
   write.csv(x = scenario_results[[i]], file = paste0(main_scenario,".", name_legend[i],".csv"))
 }
-
-
-# Change in the results depends on the followings:
-# Scenario_count 
-# scenario_change_in_VCT and scenario_change_in_others
-# main_scenario
-
